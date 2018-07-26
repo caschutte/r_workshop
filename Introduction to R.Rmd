@@ -1,0 +1,88 @@
+---
+title: "Introduction to R Notebook"
+author: "Charles Schutte"
+date: "June 29, 2018"
+output:
+  pdf_document: default
+    df_print: paged
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+[R for Data Science](http://r4ds.had.co.nz/) is an excellent resource as you learn to use R for data analysis and visualization.
+
+To get started:
+1. Open RStudio. 
+2. Selcte File -> New Project... 
+3. Click "New Directory". Click "New Project". Enter a directory name and select its location. Click "Create Project"
+4. Copy your data file into the directory you just created.
+
+I prefer to use the [Tidyverse](https://www.tidyverse.org/) collection of packages for my data analysis. Packages are just collections of R functions that people have written and published to expand the capabilities of base R. Let's install the tidyverse.
+
+```{r Install and load the tidyverse package}
+# This is a code chunk. It lets you write R code within a Notebook. Commented lines like this one are not run in the code.
+
+# This installs the tidyverse pakcage
+install.packages("tidyverse")
+
+# This loads the package into your workspace so that you can us it
+library(tidyverse)
+```
+
+Now let's [import your data](http://r4ds.had.co.nz/data-import.html).
+
+```{r Import data}
+# You will use the read_csv function. Let's learn more about it:
+help(read_csv)
+
+# Now import your data
+plants <- read_csv("TB_plant_data.csv")
+
+# Open the imported data to take a look at it
+View(plants)
+```
+
+This output tells you what kind of data you have in each column. Common types are double (number with decimal places), integer, character, and date. Your data now exists as a [tibble](http://r4ds.had.co.nz/tibbles.html) in the Environment tab at the top right of your screen. Click the arrow next to the tibble to get a preview of the columns and values it contains. 
+
+Let's try a simple transformation of these data. The tibble contains both live and dead biomass. It might be useful to calculate the total biomass.
+
+```{r Calculate total biomass}
+plants$Total_Biomass <- plants$Live_Biomass + plants$Dead_Biomass
+```
+
+You might be interested in comparing the average stem densities at all four sites contained here. This can be done by creating a [pipe](http://r4ds.had.co.nz/pipes.html):
+
+```{r Calculate average live stem densities by site}
+plants %>% 
+  group_by(SiteID) %>% 
+  summarize(MeanLiveDensity=mean(Live_Density), MeanDeadDensity = mean(Dead_Density))
+```
+
+Finally, let's [create a plot](http://r4ds.had.co.nz/data-visualisation.html) using this dataset. 
+
+```{r Create a plot}
+# From "R for Data Science":
+# "To make a graph, replace the bracketed sections in the code below with a dataset, a geom function, or a collection of mappings.""
+
+# ggplot(data = <DATA>) + 
+#  <GEOM_FUNCTION>(mapping = aes(<MAPPINGS>))
+
+ggplot(data = plants) +
+ geom_point(mapping = aes(x = Belowground_Biomass, y = Live_Biomass))
+
+# Now let's break this down by site
+ggplot(data = plants) +
+ geom_point(mapping = aes(x = Belowground_Biomass, y = Live_Biomass)) +
+ facet_wrap(~SiteID, nrow = 2)
+
+# We can also use color to help us visualize patterns
+plants$Month <- factor(plants$Month)
+ggplot(data = plants) +
+ geom_point(mapping = aes(x = Belowground_Biomass, y = Live_Biomass, color = Month)) +
+ facet_wrap(~SiteID, nrow = 2)
+
+# Many types of graphs are possible by changes the geom
+ggplot(data = plants) +
+ geom_boxplot(mapping = aes(x = Month, y = Live_Density, color = SiteID))
+```
+
