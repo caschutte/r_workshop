@@ -1,15 +1,19 @@
 ---
-title: "Introduction to R Notebook"
+title: "Introduction to R"
 author: "Charles Schutte"
 date: "June 29, 2018"
 output:
-  pdf_document: default
+  html_document:
     df_print: paged
 ---
 
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
 
 [R for Data Science](http://r4ds.had.co.nz/) is an excellent resource as you learn to use R for data analysis and visualization.
+
+RStudio [cheat sheets](https://www.rstudio.com/resources/cheatsheets/) are also useful references to keep open while you are coding using a particular package.
+
+For beginners, this [Base R Cheat Sheet](https://www.rstudio.com/wp-content/uploads/2016/10/r-cheat-sheet-3.pdf) will be very helpful.
 
 To get started:
 1. Open RStudio. 
@@ -22,8 +26,8 @@ I prefer to use the [Tidyverse](https://www.tidyverse.org/) collection of packag
 ```{r Install and load the tidyverse package}
 # This is a code chunk. It lets you write R code within a Notebook. Commented lines like this one are not run in the code.
 
-# This installs the tidyverse pakcage
-install.packages("tidyverse")
+# This installs the tidyverse package
+# install.packages("tidyverse")
 
 # This loads the package into your workspace so that you can us it
 library(tidyverse)
@@ -83,6 +87,30 @@ ggplot(data = plants) +
 
 # Many types of graphs are possible by changes the geom
 ggplot(data = plants) +
- geom_boxplot(mapping = aes(x = Month, y = Live_Density, color = SiteID))
+ geom_boxplot(mapping = aes(x = Month, y = Live_Density, color = SiteID)) +
+  labs(x = "Month of Year", y = "Live Plant Stem Density", title = "Best Plot Ever")
+```
+
+A question came up during the workshop after plotting some data: "what to do with outliers?" This is more of a science/philosphy question than an R question. However, there are several ways that we can ignore outliers within R without altering the original data. For the sake of argument, let's decide that every live biomass value over 1000 is an outlier that we want to ignore. We can make that plot like this:
+
+```{r Ignore outliers}
+# One can do this within ggplot by changing the axis limits
+ggplot(data = plants) +
+ geom_point(mapping = aes(x = Belowground_Biomass, y = Live_Biomass)) +
+ ylim(0,1000)
+```
+Note that you have not altered the dataframe in anyway, the maximum live biomass is still  `r max(plants$Live_Biomass)`. Another solution is to remove the outliers from the dataframe entirely. 
+```{r Remove outliers}
+plants$Live_Biomass[plants$Live_Biomass > 1000] <- NA
+
+# Now generate the original plot without setting limits
+ggplot(data = plants) +
+ geom_point(mapping = aes(x = Belowground_Biomass, y = Live_Biomass))
+```
+
+Now the maximum live biomass is `r max(plants$Live_Biomass, na.rm = TRUE)`. The outliers are gone entirely. Note that the original data file remains unchanged! If you decide later that values over 1000 are not in fact outliers (which they are not), you can always go back and reload the data frame from the original dat file.
+
+```{r Reimport the original data}
+plants <- read_csv("TB_plant_data.csv")
 ```
 
